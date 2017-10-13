@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <style>
+    div{
+      margin: 10px;
+    }
+  </style>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+</head>
+<body>
+  <div>
+    <form class="form-inline">
+        <section class="form-group">
+          <label for="msgForm">Message：</label>
+          <input type="text" class="form-control" id="msgForm">
+        </section>
+        <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+  <div>
+    Message from server : <span id='message'></span>
+  </div>
+
+  <script>
+
+      var host = location.hostname;
+      console.log("Host : ", host);
+      var ws = new WebSocket('ws://' + host + ':8080');
+
+      // Callback from server message
+      ws.onmessage = function (event) {
+          var receivedMessage = event.data;
+          console.log(receivedMessage);
+          $('#message').html(receivedMessage);
+      };
+
+      $("form").submit(function(e){
+          var message = $("#msgForm").val();
+          $("#msgForm").val('');
+          ws.send(message);
+          e.preventDefault();
+      });
+  </script>
+
+
+</body>
+</html>
