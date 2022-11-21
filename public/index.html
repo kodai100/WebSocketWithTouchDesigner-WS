@@ -1,49 +1,75 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <style>
-    div{
+    div {
       margin: 10px;
     }
   </style>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 </head>
+
 <body>
   <div>
+    <b>User name:</b> <span id='userName'></span>
+  </div>
+  <div>
+    <button type="button" class="btn btn-primary" id="bang" onclick="sendBang();" >BANG!</button>
+  </div>
+  <div>
     <form class="form-inline">
-        <section class="form-group">
-          <label for="msgForm">Message：</label>
-          <input type="text" class="form-control" id="msgForm">
-        </section>
-        <button type="submit" class="btn btn-primary">Send</button>
+      <section class="form-group">
+        <label for="msgForm">Send message：</label>
+        <input type="text" class="form-control" id="msgForm">
+      </section>
+      <button type="submit" class="btn btn-primary">Send</button>
     </form>
   </div>
   <div>
-    Message from server : <span id='message'></span>
+    <b>Message from server : </b><span id='message'></span>
   </div>
 
   <script>
 
-      var host = location.hostname;
-      console.log("Host : ", host);
-      var ws = new WebSocket('ws://' + host + ':8080');
+    var host = location.hostname;
+    var userName;
+    console.log("Host : ", host);
+    var ws = new WebSocket('ws://' + host + ':8080');
 
-      // Callback from server message
-      ws.onmessage = function (event) {
-          var receivedMessage = event.data;
-          console.log(receivedMessage);
-          $('#message').html(receivedMessage);
-      };
+    // Callback from server message
+    ws.onmessage = function (event) {
+      var receivedMessage = JSON.parse(event.data);
 
-      $("form").submit(function(e){
-          var message = $("#msgForm").val();
-          $("#msgForm").val('');
-          ws.send(message);
-          e.preventDefault();
-      });
+      
+      if ((receivedMessage).message) {
+        $('#message').html((receivedMessage).message);
+        console.log((receivedMessage).message);
+      }
+
+      if ((receivedMessage).user) {
+        userName = (receivedMessage).user;
+        $('#userName').html((receivedMessage).user);
+        console.log((receivedMessage).user);
+      }
+
+    };
+
+    function sendBang(){
+      var message = JSON.stringify({message:true});
+      ws.send(message);
+    }
+
+    $("form").submit(function (e) {
+      var message = JSON.stringify({message:$("#msgForm").val()});
+      $("#msgForm").val('');
+      ws.send(message);
+      e.preventDefault();
+    });
   </script>
 
 
 </body>
+
 </html>

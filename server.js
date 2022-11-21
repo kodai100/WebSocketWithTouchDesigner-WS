@@ -1,4 +1,5 @@
 var express = require('express'),
+    uniqueNumberGenerator = require('unique-names-generator'),
     http = require('http'),
     url = require('url'),
     path = require('path'),
@@ -6,10 +7,15 @@ var express = require('express'),
 
 var app = express(),
     server = http.createServer(app),
-    wss = new webSocket.Server({ server:server });
+    wss = new webSocket.Server({ server: server });
+
+const { uniqueNamesGenerator, colors, animals } = require('unique-names-generator');
 
 // client connections
 var connects = []
+
+
+
 
 // --------------------------------------------------------------
 
@@ -17,12 +23,25 @@ app.use(express.static(path.join(__dirname, '/public')));
 
 // Called when success building connection
 wss.on('connection', function (ws, req) {
-    var location = url.parse(req.url, true);
+    const location = url.parse(req.url, true);
 
-    var initMessage = {message:"connection"};
+    var initMessage = { message: "connection"};
     ws.send(JSON.stringify(initMessage));
     connects.push(ws);
-    console.log("New Client Connected : " + connects.length);
+    console.log("Total users: ", connects.length);
+
+    // generating unique user name
+
+    const userNumber = uniqueNumberGenerator.NumberDictionary.generate({ min: 100, max: 999 });
+    const userName = {user: uniqueNamesGenerator({
+        dictionaries: [animals, colors, userNumber],
+        length: 3,
+        separator: '',
+        style: 'capital'
+    })};
+    ws.send(JSON.stringify(userName));
+    connects.push(ws);
+    console.log("New Client Connected: ", userName);
 
     // Callback from client message
     ws.on('message', function (message) {
@@ -44,7 +63,7 @@ server.listen(8080, function listening() {
 });
 
 // Implement broadcast function because of ws doesn't have it
-function broadcast (message) {
+function broadcast(message) {
     connects.forEach(function (socket, i) {
         socket.send(message);
     });
